@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="TGO">
+  <title>ImagePad</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+<div class="ed">
+
+  <header class="top">
+    <div class="brand">
+      <img src="../icons/icon-16.png" width="16" height="16" alt="">
+      <strong data-i18n="app.name">ImagePad</strong>
+    </div>
+    <div class="grp">
+      <button id="openBtn" type="button" class="btn small" data-help="help.open"><span data-icon="open"></span><span data-i18n="btn.open">Open</span></button>
+      <button id="undoBtn" type="button" class="icon" data-i18n-aria="btn.undo" data-help="help.undo" disabled><span data-icon="undo"></span></button>
+      <button id="redoBtn" type="button" class="icon" data-i18n-aria="btn.redo" data-help="help.redo" disabled><span data-icon="redo"></span></button>
+      <button id="helpBtn" type="button" class="icon" data-i18n-aria="help.tour" data-help="help.tour"><span data-icon="help"></span></button>
+      <button id="settingsBtn" type="button" class="icon" data-i18n-aria="menu.settings" data-help="help.menu"><span data-icon="menu"></span></button>
+    </div>
+  </header>
+
+  <div id="empty" class="empty">
+    <div class="dropbox" id="dropBox" role="button" tabindex="0">
+      <span class="big-ic" data-icon="open"></span>
+      <strong data-i18n="drop.title">Drop an image here</strong>
+      <p class="hint" data-i18n="drop.hint"></p>
+      <button id="emptyOpen" type="button" class="btn primary" data-i18n="btn.open">Open</button>
+      <p class="hint" data-i18n="app.tagline"></p>
+    </div>
+  </div>
+
+  <div id="workspace" class="workspace" hidden>
+
+    <section class="stage-wrap">
+      <div id="viewport" class="viewport">
+        <canvas id="view"></canvas>
+        <div id="outScroll" class="out-scroll">
+          <img id="outImg" alt="" draggable="false">
+        </div>
+        <div id="finishTip" class="finish-tip is-off" data-i18n="finish.hint"></div>
+        <div id="toolHint" class="tool-hint"></div>
+        <div id="busy" class="busy" role="status" aria-live="polite" hidden>
+          <div class="busy-pill"><span class="spin" aria-hidden="true"></span><span id="busyText"></span></div>
+        </div>
+      </div>
+      <div class="stage-bar">
+        <div class="seg" role="group">
+          <button type="button" data-view="original" data-i18n="view.original" data-help="help.view" aria-pressed="false">Original</button>
+          <button type="button" data-view="edited" data-i18n="view.edited" data-help="help.view" aria-pressed="true">Edited</button>
+          <button type="button" data-view="output" data-i18n="view.output" data-help="help.view" aria-pressed="false">Output</button>
+        </div>
+        <button id="zoomOutBtn" type="button" class="icon" data-i18n-aria="btn.zoomout" data-help="help.zoom"><span data-icon="minus"></span></button>
+        <span id="zoomLabel" class="mono small"></span>
+        <button id="zoomInBtn" type="button" class="icon" data-i18n-aria="btn.zoomin" data-help="help.zoom"><span data-icon="plus"></span></button>
+        <button id="fitBtn" type="button" class="icon" data-i18n-aria="btn.fit" data-help="help.zoom"><span data-icon="fit"></span></button>
+        <button id="actualBtn" type="button" class="icon text" data-i18n-aria="btn.actual" data-help="help.zoom">1:1</button>
+        <button id="zoomBtn" type="button" class="icon" data-i18n-aria="btn.zoom" data-help="help.zoomdlg"><span data-icon="zoom"></span></button>
+      </div>
+    </section>
+
+    <div class="phase" role="tablist" aria-label="Workflow">
+      <button type="button" role="tab" id="phaseEditBtn" data-phase="edit" data-i18n="phase.edit" aria-selected="true">Edit</button>
+      <button type="button" role="tab" id="phaseOutBtn" data-phase="out" data-i18n="phase.out" aria-selected="false" tabindex="-1">Finish</button>
+    </div>
+
+    <!-- Part 1: crop, draw, blur -->
+    <section id="phaseEdit" class="phase-body">
+      <nav class="tools" aria-label="Tools">
+        <button type="button" class="tool" data-tool="select" data-help="help.select"><span class="ico" data-icon="select"></span><span data-i18n="tool.select"></span></button>
+        <button type="button" class="tool" data-tool="area" data-help="help.area"><span class="ico" data-icon="area"></span><span data-i18n="tool.area"></span></button>
+        <button type="button" class="tool" data-tool="brush" data-help="help.brush"><span class="ico" data-icon="brush"></span><span data-i18n="tool.brush"></span></button>
+        <button type="button" class="tool" data-tool="crop" data-help="help.crop"><span class="ico" data-icon="crop"></span><span data-i18n="tool.crop"></span></button>
+        <button type="button" class="tool" data-tool="hand" data-help="help.hand"><span class="ico" data-icon="hand"></span><span data-i18n="tool.hand"></span></button>
+      </nav>
+
+      <div class="options">
+        <div id="panel-area" class="opt" hidden>
+          <div class="grid3">
+            <label class="field"><span data-i18n="field.effect">Effect</span>
+              <select id="areaMode" data-help="help.mode">
+                <option value="blur" data-i18n="mode.blur">Blur</option>
+                <option value="pixelate" data-i18n="mode.pixelate">Pixelate</option>
+                <option value="solid" data-i18n="mode.solid">Color cover</option>
+              </select></label>
+            <label class="field"><span data-i18n="field.shape">Shape</span>
+              <select id="areaShape" data-help="help.shape">
+                <option value="rect" data-i18n="shape.rect">Rectangle</option>
+                <option value="ellipse" data-i18n="shape.ellipse">Ellipse</option>
+              </select></label>
+            <label class="field"><span data-i18n="field.strength">Strength</span>
+              <input id="areaStrength" type="range" min="1" max="40" step="1" data-help="help.strength"></label>
+          </div>
+          <label class="row" id="areaColorField"><span data-i18n="field.color">Color</span>
+            <input id="areaColor" type="color" data-help="help.color"></label>
+        </div>
+
+        <div id="panel-brush" class="opt" hidden>
+          <div class="grid3">
+            <label class="field"><span data-i18n="field.effect">Effect</span>
+              <select id="brushMode" data-help="help.mode">
+                <option value="blur" data-i18n="mode.blur">Blur</option>
+                <option value="pixelate" data-i18n="mode.pixelate">Pixelate</option>
+                <option value="solid" data-i18n="mode.solid">Color cover</option>
+              </select></label>
+            <label class="field"><span data-i18n="field.size">Brush size</span>
+              <input id="brushSize" type="range" min="1" max="40" step="1" data-help="help.size"></label>
+            <label class="field"><span data-i18n="field.strength">Strength</span>
+              <input id="brushStrength" type="range" min="1" max="40" step="1" data-help="help.strength"></label>
+          </div>
+          <label class="row" id="brushColorField"><span data-i18n="field.color">Color</span>
+            <input id="brushColor" type="color" data-help="help.color"></label>
+        </div>
+
+        <div id="panel-crop" class="opt" hidden>
+          <div class="row wrap">
+            <label class="field grow"><span data-i18n="field.ratio">Frame</span>
+              <select id="cropRatio" data-help="help.ratio"></select></label>
+            <div id="cropCustom" class="row" hidden>
+              <input id="cropW" type="number" min="1" step="1" data-i18n-ph="field.width" data-help="help.custom">
+              <input id="cropH" type="number" min="1" step="1" data-i18n-ph="field.height" data-help="help.custom">
+            </div>
+          </div>
+          <div class="row wrap">
+            <span id="cropInfo" class="mono small"></span>
+            <span class="grow"></span>
+            <button id="applyCrop" type="button" class="btn primary small" data-i18n="btn.applycrop" data-help="help.applycrop" hidden>Apply crop</button>
+            <button id="removeCrop" type="button" class="btn ghost small" data-i18n="btn.removecrop" data-help="help.applycrop" disabled>Remove crop</button>
+          </div>
+        </div>
+
+        <div class="history">
+          <div class="row between">
+            <button id="opsToggle" type="button" class="fold" aria-expanded="false" data-help="help.history"><span class="chev" data-icon="chev"></span><span id="opsCount">-</span></button>
+            <button id="clearOps" type="button" class="btn ghost small" data-i18n="btn.clearops" data-help="help.clearops">Clear all</button>
+          </div>
+          <ul id="opsList" class="ops" role="list" hidden></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Part 2: watermark and file settings -->
+    <section id="phaseOut" class="phase-body" hidden>
+      <div class="options">
+        <div class="group-title" data-i18n="panel.watermark">Watermark</div>
+        <label class="row"><span data-i18n="panel.watermark" data-help="help.wm">Watermark</span><input id="wmOn" type="checkbox" data-help="help.wm"></label>
+        <div class="grid2">
+          <label class="field"><span data-i18n="field.text">Text</span>
+            <input id="wmText" type="text" maxlength="60" disabled data-help="help.wm"></label>
+          <label class="field"><span data-i18n="field.position">Position</span>
+            <select id="wmPos" disabled data-help="help.pos">
+              <option value="br" data-i18n="pos.br">Bottom right</option>
+              <option value="bl" data-i18n="pos.bl">Bottom left</option>
+              <option value="tr" data-i18n="pos.tr">Top right</option>
+              <option value="tl" data-i18n="pos.tl">Top left</option>
+              <option value="tile" data-i18n="pos.tile">Full cover (tiled)</option>
+            </select></label>
+        </div>
+
+        <div class="group-title" data-i18n="panel.output">Output</div>
+        <div class="grid2">
+          <label class="field"><span data-i18n="field.format">Format</span>
+            <select id="outFormat" data-help="help.format">
+              <option value="jpeg">JPEG</option>
+              <option value="webp">WebP</option>
+              <option value="png">PNG</option>
+            </select></label>
+          <label class="field"><span data-i18n="field.quality">Quality</span>
+            <input id="outQuality" type="range" min="40" max="100" step="1" data-help="help.quality"></label>
+          <label class="field"><span data-i18n="field.maxkb">Max file size (KB)</span>
+            <input id="outMaxKB" type="number" min="0" step="10" data-help="help.maxkb"></label>
+          <label class="field"><span data-i18n="field.maxsize">Max size (px)</span>
+            <div class="row"><input id="outMaxW" type="number" min="0" step="1" placeholder="W" data-help="help.maxsize"><input id="outMaxH" type="number" min="0" step="1" placeholder="H" data-help="help.maxsize"></div></label>
+        </div>
+        <label class="row"><span data-i18n="meta.keep" data-help="help.metakeep">Keep metadata (EXIF, GPS)</span><input id="metaKeep" type="checkbox" data-help="help.metakeep"></label>
+        <p class="hint" data-i18n="meta.keephint"></p>
+      </div>
+    </section>
+
+    <footer class="actions">
+      <button id="saveBtn" type="button" class="btn primary" data-help="help.save" disabled><span data-icon="save"></span><span data-i18n="btn.save">Save</span></button>
+      <button id="copyBtn" type="button" class="btn" data-help="help.copy" disabled><span data-icon="copy"></span><span data-i18n="btn.copy">Copy</span></button>
+    </footer>
+
+    <footer class="statusline">
+      <span id="info" class="mono small"></span>
+      <span id="statusText" class="small" role="status"></span>
+      <a class="credit" href="https://github.com/WUDp-TGOtools" target="_blank" rel="noopener">ImagePad · part of WUDp by TGO.tools</a>
+    </footer>
+  </div>
+</div>
+
+<!-- Guided tour -->
+<div id="tour" class="tour" hidden>
+  <div id="tourHole" class="tour-hole"></div>
+  <div id="tourCard" class="tour-card" role="dialog" aria-live="polite">
+    <div class="row between small muted"><span id="tourStep"></span><button id="tourSkip" type="button" class="btn ghost small" data-i18n="tour.skip">Skip</button></div>
+    <strong id="tourTitle"></strong>
+    <p id="tourBody" class="tour-body"></p>
+    <div class="row between">
+      <button id="tourBack" type="button" class="btn small" data-i18n="tour.back">Back</button>
+      <button id="tourNext" type="button" class="btn primary small" data-i18n="tour.next">Next</button>
+    </div>
+  </div>
+</div>
+
+<dialog id="welcomeDlg" class="dlg">
+  <div class="dlg-body">
+    <div class="about-head">
+      <img src="../icons/icon-48.png" width="40" height="40" alt="">
+      <strong data-i18n="welcome.title">Welcome</strong>
+    </div>
+    <p data-i18n="welcome.body"></p>
+    <div class="row between">
+      <button id="welcomeLater" type="button" class="btn ghost" data-i18n="welcome.later">Later</button>
+      <button id="welcomeStart" type="button" class="btn primary" data-i18n="welcome.start">Start the tour</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="zoomDlg" class="dlg big">
+  <div class="dlg-head">
+    <input id="zoomDlgRange" type="range" min="25" max="400" step="5" aria-label="zoom">
+    <button id="zoomClose" type="button" class="btn small" data-i18n="btn.close">Close</button>
+  </div>
+  <div id="zoomBody" class="dlg-body scroll">
+    <canvas id="zoomCanvas"></canvas>
+  </div>
+</dialog>
+
+<dialog id="settingsDlg" class="dlg">
+  <div class="dlg-head">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-mtab="settings" data-i18n="menu.settings" aria-selected="true">Settings</button>
+      <button type="button" role="tab" data-mtab="about" data-i18n="menu.about" aria-selected="false" tabindex="-1">About</button>
+    </div>
+    <button id="closeSettings" type="button" class="icon" data-i18n-aria="btn.close"><span data-icon="close"></span></button>
+  </div>
+
+  <div id="pane-settings" class="dlg-body scroll-y">
+    <div class="group-title" data-i18n="settings.interface">Interface</div>
+    <div class="grid2">
+      <label class="field"><span data-i18n="settings.lang">Language</span><select id="langSel" data-help="help.lang"></select></label>
+      <label class="field"><span data-i18n="settings.theme">Theme</span><select id="themeSel" data-help="help.theme"></select></label>
+    </div>
+    <label class="row"><span data-i18n="settings.largeui">Larger controls</span><input id="setLarge" type="checkbox"></label>
+    <label class="row"><span data-i18n="settings.hints">Show hints</span><input id="setHints" type="checkbox"></label>
+    <label class="row"><span data-i18n="settings.reducemotion">Reduce motion</span><input id="setMotion" type="checkbox"></label>
+
+    <div class="group-title" data-i18n="settings.workflow">Workflow</div>
+    <div class="grid2">
+      <label class="field"><span data-i18n="settings.starttool">Start with tool</span>
+        <select id="setTool">
+          <option value="select" data-i18n="tool.select">Select</option>
+          <option value="area" data-i18n="tool.area">Area</option>
+          <option value="brush" data-i18n="tool.brush">Brush</option>
+          <option value="crop" data-i18n="tool.crop">Crop</option>
+          <option value="hand" data-i18n="tool.hand">Move</option>
+        </select></label>
+      <label class="field"><span data-i18n="settings.startview">Start view</span>
+        <select id="setView">
+          <option value="edited" data-i18n="view.edited">Edited</option>
+          <option value="original" data-i18n="view.original">Original</option>
+        </select></label>
+    </div>
+
+    <div class="group-title" data-i18n="settings.tour">Guided tour</div>
+    <button id="replayTour" type="button" class="btn" data-i18n="btn.replaytour">Replay tour</button>
+
+    <details class="privacy">
+      <summary data-i18n="settings.privacy.title">Privacy</summary>
+      <ul class="priv-list">
+        <li data-i18n="priv.1"></li>
+        <li data-i18n="priv.2"></li>
+        <li data-i18n="priv.3"></li>
+        <li data-i18n="priv.4"></li>
+        <li data-i18n="priv.5"></li>
+      </ul>
+    </details>
+
+    <button id="resetPrefs" type="button" class="btn ghost" data-i18n="btn.resetprefs" data-help="help.resetprefs">Restore default settings</button>
+  </div>
+
+  <div id="pane-about" class="dlg-body" hidden>
+    <div class="about-head">
+      <img src="../icons/icon-48.png" width="40" height="40" alt="">
+      <div>
+        <strong>ImagePad</strong>
+        <div class="hint">v1.1.0</div>
+      </div>
+    </div>
+    <p data-i18n="about.what"></p>
+    <p class="hint" data-i18n="about.wudp"></p>
+    <p class="hint" data-i18n="about.repo"></p>
+    <ul class="links">
+      <li><a href="https://github.com/TGO-root" target="_blank" rel="noopener" data-i18n="about.gh">TGO on GitHub</a></li>
+      <li><a href="https://github.com/WUDp-TGOtools" target="_blank" rel="noopener" data-i18n="about.org">WUDp organization</a></li>
+    </ul>
+    <p class="hint">by TGO.tools</p>
+  </div>
+</dialog>
+
+<input id="fileInput" type="file" accept="image/*" hidden>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script type="module" src="src/editor.js"></script>
+</body>
+</html>

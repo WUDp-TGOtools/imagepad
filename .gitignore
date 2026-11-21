@@ -1,0 +1,15 @@
+# Zip files at the top level are local artifacts. Release ZIPs live in dist/ and are tracked on purpose.
+/*.zip
+
+# dependencies (none today; kept for future tooling)
+node_modules/
+
+# editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# screenshot capture output (keep docs/images placeholders tracked)
+__pycache__/

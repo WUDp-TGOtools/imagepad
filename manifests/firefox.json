@@ -1,0 +1,15 @@
+{
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "imagepad@tgo.tools",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  },
+  "background": { "scripts": ["background.js"] },
+  "sidebar_action": {
+    "default_title": "ImagePad",
+    "default_panel": "editor/index.html",
+    "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png" }
+  }
+}

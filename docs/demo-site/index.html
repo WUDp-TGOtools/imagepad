@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PhotoHub: Create your profile</title>
+  <style>
+    body { margin: 0; font: 16px/1.5 system-ui, Segoe UI, sans-serif; background: #f5f6fa; color: #1b1f2a; }
+    main { max-width: 640px; margin: 40px auto; background: #fff; border-radius: 14px; padding: 32px; box-shadow: 0 2px 16px rgba(0,0,0,.08); }
+    h1 { margin: 0 0 6px; font-size: 24px; }
+    p.lead { margin: 0 0 24px; color: #6b7280; }
+    label { display: block; font-weight: 600; margin: 18px 0 8px; }
+    input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid #d1d5e0; border-radius: 8px; font: inherit; }
+    .drop { margin-top: 8px; border: 2px dashed #9aa5ff; border-radius: 12px; padding: 34px 16px; text-align: center; background: #f4f6ff; color: #2a3fb8; cursor: pointer; }
+    .drop.over { background: #e4e9ff; border-color: #4f6bff; }
+    .drop small { display: block; color: #6b7280; margin-top: 6px; }
+    .file { margin-top: 10px; font-size: 14px; color: #15803d; min-height: 20px; }
+    button { margin-top: 26px; width: 100%; padding: 12px; border: 0; border-radius: 10px; background: #4f6bff; color: #fff; font: 600 16px system-ui, sans-serif; cursor: pointer; }
+    input[type=file] { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Create your profile</h1>
+    <p class="lead">Upload a square photo. Recommended: 400 × 400 px, under 200 KB.</p>
+    <label for="name">Display name</label>
+    <input id="name" type="text" placeholder="Your name">
+
+    <label>Profile photo</label>
+    <div id="drop" class="drop">
+      Drop an image here or click to choose
+      <small>JPG, PNG or WebP</small>
+    </div>
+    <input id="photo" type="file" accept="image/*">
+    <div id="file" class="file"></div>
+
+    <button type="button">Save profile</button>
+  </main>
+  <script>
+    const drop = document.getElementById('drop');
+    const input = document.getElementById('photo');
+    const out = document.getElementById('file');
+    drop.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => { if (input.files[0]) out.textContent = 'Selected: ' + input.files[0].name; });
+    ['dragenter', 'dragover'].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach((e) => drop.addEventListener(e, () => drop.classList.remove('over')));
+    drop.addEventListener('drop', (ev) => { ev.preventDefault(); const f = ev.dataTransfer.files[0]; if (f) out.textContent = 'Received: ' + f.name; });
+  </script>
+</body>
+</html>

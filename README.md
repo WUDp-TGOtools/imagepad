@@ -10,7 +10,7 @@ Part of **WUDp** by **TGO.tools**
 ![Chrome](https://img.shields.io/badge/Chrome-116%2B-4f6bff)
 ![Edge](https://img.shields.io/badge/Edge-116%2B-4f6bff)
 ![Firefox](https://img.shields.io/badge/Firefox-128%2B-4f6bff)
-![License](https://img.shields.io/badge/license-TBD-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ![ImagePad demo](docs/images/demo.gif)
 
@@ -284,7 +284,7 @@ Ideas and bug reports are welcome in the issues of the organization repository.
 
 ## License
 
-To be decided by the WUDp organization. Until then, all rights are reserved by the authors.
+ImagePad is released under the [MIT License](LICENSE).
 
 ---
 

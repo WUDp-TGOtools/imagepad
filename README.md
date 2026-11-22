@@ -44,7 +44,7 @@ ImagePad runs beside the site, in the browser's side panel. You make the change 
 
 | Edit | Area blur | Finish and drag |
 | :---: | :---: | :---: |
-| ![Edit tab](docs/images/panel-edit.png) | ![Area blur](docs/images/panel-blur.png) | ![Finish tab](docs/images/panel-finish.png) |
+| ![Edit tab](docs/images/panel-edit.png) | ![Area blur](docs/images/panel-blur.gif) | ![Finish tab](docs/images/panel-finish.png) |
 
 ![Demo site with the drop zone](docs/images/demo-site.png)
 

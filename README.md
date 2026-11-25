@@ -14,6 +14,7 @@ Part of **WUDp** by **TGO.tools**
 
 ![Dragging an edited image into a page](docs/images/drag-demo.gif)
 
+
 </div>
 
 ---

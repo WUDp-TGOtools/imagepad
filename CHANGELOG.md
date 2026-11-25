@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.5
+- Documentation: README now shows a drag demo GIF and a collage of the tool modes. Removed the capture script and the demo site.
+
 ## 1.2.4
 - Fixed (Chrome): the background script took the Firefox path, because Chrome also exposes a `browser` object. Firefox is now detected by its sidebar API.
 - Fixed (Chrome): the `license` key was removed from manifest.json (Chrome warned about it). The license stays in LICENSE and package.json.

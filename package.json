@@ -1,6 +1,6 @@
 {
   "name": "imagepad",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "private": true,
   "type": "module",
   "description": "ImagePad: prepare images for upload, locally in the browser. Part of WUDp by TGO.tools.",

@@ -11,5 +11,4 @@ Thumbs.db
 .vscode/
 .idea/
 
-# screenshot capture output (keep docs/images placeholders tracked)
 __pycache__/

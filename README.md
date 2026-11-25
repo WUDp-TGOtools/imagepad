@@ -12,9 +12,7 @@ Part of **WUDp** by **TGO.tools**
 ![Firefox](https://img.shields.io/badge/Firefox-128%2B-4f6bff)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-![ImagePad demo](docs/images/demo.gif)
-
-<sub>The GIF above is a placeholder. Replace it with a real recording (see [Capturing screenshots](#capturing-screenshots)).</sub>
+![Dragging an edited image into a page](docs/images/drag-demo.gif)
 
 </div>
 
@@ -42,12 +40,7 @@ ImagePad runs beside the site, in the browser's side panel. You make the change 
 
 ## Screenshots
 
-| Edit | Area blur | Finish and drag |
-| :---: | :---: | :---: |
-| ![Edit tab](docs/images/panel-edit.png) | ![Area blur](docs/images/panel-blur.gif) | ![Finish tab](docs/images/panel-finish.png) |
-
-
-<sub>The images in `docs/images/` are placeholders until you capture real ones (see [Capturing screenshots](#capturing-screenshots)). The upload example uses Google Images.</sub>
+![ImagePad tool modes](docs/images/tools-collage.png)
 
 ---
 
@@ -117,20 +110,6 @@ To try a build while developing, load `dist/<browser>` with the steps in [Instal
 
 `scripts/build.mjs` merges them with `package.json` (for the version) and writes one folder and one ZIP per browser.
 
-### Capturing screenshots
-
-The screenshots and the GIF are placeholders. To make real ones on your machine:
-
-```bash
-pip install playwright
-python -m playwright install chromium
-npm run build:chrome
-python scripts/capture.py
-```
-
-This writes `docs/images/*.png` from Google Images (the upload drop area) and from the editor. The script is not part of CI and may need selector updates after UI changes. Record the GIF with a screen recorder while following the steps in [How to use](#how-to-use).
-
----
 
 ### Debug build
 
@@ -180,7 +159,6 @@ imagepad/
 │   └── workflows/
 │       ├── ci.yml
 │       └── release.yml
-├── .gitignore
 ├── CHANGELOG.md  # release history
 ├── LICENSE  # MIT license
 ├── README.md  # this file
@@ -207,22 +185,16 @@ imagepad/
 │       ├── github-release-1.2.0.md
 │       ├── short-announcement.md
 │       └── store-whats-new-1.2.0.md
-├── docs/  # screenshots, GIF and capture script
+├── docs/  # README images
 │   └── images/
-│       ├── demo.gif
-│       ├── google-images-upload.png
-│       ├── panel-blur.png
-│       ├── panel-edit.png
-│       └── panel-finish.png
 ├── manifests/  # per-browser manifest overlays
 │   ├── base.json
 │   ├── chrome.json
 │   ├── edge.json
 │   └── firefox.json
 ├── package.json  # version and npm scripts
-├── scripts/  # build, checks, zip writer and capture
+├── scripts/  # build, checks and zip writer
 │   ├── build.mjs
-│   ├── capture.py
 │   ├── check.mjs
 │   ├── lib.mjs
 │   └── zip.mjs
@@ -277,7 +249,7 @@ npm test
 
 The unit tests cover the pure logic: geometry and crop frames, the size search, masks and compositing, blur and pixelate (the optimized blur is checked against a naive reference), EXIF handling, and the translation dictionary (every key in every language, and every key used in the HTML and JavaScript).
 
-The **user interface** is not covered by automated tests yet. Test it by hand in each browser with the checklist below, or with the capture script.
+The **user interface** is not covered by automated tests yet. Test it by hand in each browser with the checklist below.
 
 ### Manual checklist
 

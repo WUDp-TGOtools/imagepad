@@ -1,7 +1,8 @@
 // Background script for both browsers. Chrome uses an MV3 service worker, Firefox an event page.
 // It opens the side panel / sidebar and adds the context menu. No image data passes through here.
-const ext = globalThis.browser ?? globalThis.chrome;
-const isFirefox = typeof globalThis.browser !== 'undefined';
+// Firefox is detected by its sidebar API. Chrome may also expose a `browser` object, so that is not enough.
+const isFirefox = typeof globalThis.browser?.sidebarAction !== 'undefined';
+const ext = isFirefox ? globalThis.browser : globalThis.chrome;
 const MENU_ID = 'wudp-edit-image';
 
 // Chrome and Edge use the side panel when it exists. Firefox uses its sidebar.

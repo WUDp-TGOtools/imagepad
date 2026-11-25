@@ -19,6 +19,7 @@ for (const target of TARGETS) {
   const m = manifestFor(target);
   const tag = `[${target}]`;
   if (m.manifest_version !== 3) fail(`${tag} manifest_version must be 3`);
+  if ('license' in m) fail(`${tag} 'license' is not a manifest key (Chrome warns); keep it in package.json and LICENSE`);
   if (!/^\d+\.\d+\.\d+$/.test(m.version)) fail(`${tag} version must be x.y.z`);
   for (const size of ['16', '32', '48', '96', '128']) {
     if (!existsSync(join(SRC, m.icons?.[size] ?? ''))) fail(`${tag} missing icon ${size}`);

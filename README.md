@@ -6,7 +6,7 @@
 
 Part of **WUDp** by **TGO.tools**
 
-![Version](https://img.shields.io/badge/version-1.2.0-4f6bff)
+![Version](https://img.shields.io/badge/version-1.2.4-4f6bff)
 ![Chrome](https://img.shields.io/badge/Chrome-116%2B-4f6bff)
 ![Edge](https://img.shields.io/badge/Edge-116%2B-4f6bff)
 ![Firefox](https://img.shields.io/badge/Firefox-128%2B-4f6bff)
@@ -44,11 +44,11 @@ ImagePad runs beside the site, in the browser's side panel. You make the change 
 
 | Edit | Area blur | Finish and drag |
 | :---: | :---: | :---: |
-| ![Edit tab](docs/images/panel-edit.png) | ![Area blur](docs/images/panel-blur.gif) | ![Finish tab](docs/images/panel-finish.png) |
+| ![Edit tab](docs/images/panel-edit.png) | ![Area blur](docs/images/panel-blur.png) | ![Finish tab](docs/images/panel-finish.png) |
 
-![Demo site with the drop zone](docs/images/demo-site.png)
+![Google Images upload area](docs/images/google-images-upload.png)
 
-<sub>The images in `docs/images/` are placeholders until you capture real ones (see [Capturing screenshots](#capturing-screenshots)).</sub>
+<sub>The images in `docs/images/` are placeholders until you capture real ones (see [Capturing screenshots](#capturing-screenshots)). The upload example uses Google Images.</sub>
 
 ---
 
@@ -66,9 +66,11 @@ ImagePad runs beside the site, in the browser's side panel. You make the change 
 
 Download the ZIP for your browser from `dist/`:
 
-- `dist/imagepad-chrome-1.2.0.zip`
-- `dist/imagepad-edge-1.2.0.zip`
-- `dist/imagepad-firefox-1.2.0.zip`
+- `dist/imagepad-chrome-1.2.4.zip`
+- `dist/imagepad-edge-1.2.4.zip`
+- `dist/imagepad-firefox-1.2.4.zip`
+
+Debug builds with verbose logs: `dist/imagepad-<browser>-1.2.4-debug.zip`. See [Debug build](#debug-build).
 
 **Chrome:** open `chrome://extensions`, turn on Developer mode, click Load unpacked, and select the unpacked folder. Requires Chrome 116 or newer.
 
@@ -127,7 +129,18 @@ npm run build:chrome
 python scripts/capture.py
 ```
 
-This writes `docs/images/*.png` from the demo site (`docs/demo-site/index.html`) and the editor. The script is not part of CI and may need selector updates after UI changes. Record the GIF with a screen recorder while following the steps in [How to use](#how-to-use).
+This writes `docs/images/*.png` from Google Images (the upload drop area) and from the editor. The script is not part of CI and may need selector updates after UI changes. Record the GIF with a screen recorder while following the steps in [How to use](#how-to-use).
+
+---
+
+### Debug build
+
+Two kinds of build are produced:
+
+- **Normal** (`npm run build`): logging is off, errors are still reported.
+- **Debug** (`npm run build:debug`, or `build:debug:chrome`, `build:debug:edge`, `build:debug:firefox`): the extension is named *ImagePad (Debug)* and logs drag and drop events, worker timings, previews and exports to the console. Settings then shows a **Copy debug log** button.
+
+To read the log: open the extension's Inspect view (Chrome: `chrome://extensions` → Inspect views; Firefox: `about:debugging` → Inspect; or right-click the side panel → Inspect), then open the Console and filter by `[ImagePad]`.
 
 ---
 
@@ -140,7 +153,7 @@ This writes `docs/images/*.png` from the demo site (`docs/demo-site/index.html`)
 The **release workflow** (`.github/workflows/release.yml`) checks that the tag matches `package.json`, builds all browsers, attaches the ZIPs to a GitHub release, signs the Firefox build when the AMO secrets exist, and uploads to the Chrome Web Store when the CWS secrets exist.
 
 Release posts for the current version are in `dist/posts/`:
-- `github-release-1.2.0.md`: the GitHub release text.
+- `github-release-1.2.0.md`: the GitHub release text (write a new one for each release).
 - `short-announcement.md`: a short post for social media.
 - `store-whats-new-1.2.0.md`: the "What's new" text for the stores.
 
@@ -164,33 +177,41 @@ The full privacy text is in the Settings tab of the extension.
 
 ```
 imagepad/
-├── .github/
+├── .github/  # CI and release workflows
 │   └── workflows/
 │       ├── ci.yml
 │       └── release.yml
 ├── .gitignore
 ├── CHANGELOG.md  # release history
+├── LICENSE  # MIT license
 ├── README.md  # this file
 ├── dist/  # release builds and release posts
 │   ├── chrome/  # unpacked build
 │   │   └── …  (same layout as src/, plus manifest.json)
+│   ├── chrome-debug/  # unpacked build
+│   │   └── …  (same layout as src/, plus manifest.json)
 │   ├── edge/  # unpacked build
+│   │   └── …  (same layout as src/, plus manifest.json)
+│   ├── edge-debug/  # unpacked build
 │   │   └── …  (same layout as src/, plus manifest.json)
 │   ├── firefox/  # unpacked build
 │   │   └── …  (same layout as src/, plus manifest.json)
-│   ├── imagepad-chrome-1.2.0.zip
-│   ├── imagepad-edge-1.2.0.zip
-│   ├── imagepad-firefox-1.2.0.zip
+│   ├── firefox-debug/  # unpacked build
+│   │   └── …  (same layout as src/, plus manifest.json)
+│   ├── imagepad-chrome-1.2.4-debug.zip
+│   ├── imagepad-chrome-1.2.4.zip
+│   ├── imagepad-edge-1.2.4-debug.zip
+│   ├── imagepad-edge-1.2.4.zip
+│   ├── imagepad-firefox-1.2.4-debug.zip
+│   ├── imagepad-firefox-1.2.4.zip
 │   └── posts/
 │       ├── github-release-1.2.0.md
 │       ├── short-announcement.md
 │       └── store-whats-new-1.2.0.md
-├── docs/  # screenshots, GIF and demo site
-│   ├── demo-site/
-│   │   └── index.html
+├── docs/  # screenshots, GIF and capture script
 │   └── images/
-│       ├── demo-site.png
 │       ├── demo.gif
+│       ├── google-images-upload.png
 │       ├── panel-blur.png
 │       ├── panel-edit.png
 │       └── panel-finish.png
@@ -200,7 +221,7 @@ imagepad/
 │   ├── edge.json
 │   └── firefox.json
 ├── package.json  # version and npm scripts
-├── scripts/  # build, checks and capture
+├── scripts/  # build, checks, zip writer and capture
 │   ├── build.mjs
 │   ├── capture.py
 │   ├── check.mjs
@@ -215,6 +236,8 @@ imagepad/
 │   │   ├── index.html
 │   │   └── src/  # the extension (single source)
 │   │       ├── browser.js
+│   │       ├── build-flags.js
+│   │       ├── debug.js
 │   │       ├── editor.js
 │   │       ├── effects.js
 │   │       ├── exif.js
@@ -237,6 +260,7 @@ imagepad/
 │   ├── edge-add-ons.md
 │   └── firefox-amo.md
 └── tests/  # unit tests
+    ├── background.test.mjs
     ├── effects.test.mjs
     ├── exif.test.mjs
     ├── i18n.test.mjs

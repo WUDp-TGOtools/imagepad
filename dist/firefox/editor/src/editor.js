@@ -7,6 +7,8 @@ import { loadData, saveData } from './storage.js';
 import { applyIcons } from './icons.js';
 import { ext, hasExt as inExt } from './browser.js';
 import { TOUR } from './tour.js';
+import { dlog, diagnosticsText, installErrorReporting } from './debug.js';
+import { DEBUG_BUILD } from './build-flags.js';
 
 const hasExt = inExt;
 const THEMES = ['modern', 'dark', 'xp'];
@@ -93,7 +95,12 @@ worker.onerror = () => {
 function call(msg) {
   return new Promise((resolve, reject) => {
     const id = ++rid;
-    pending.set(id, { resolve, reject });
+    const started = performance.now();
+    pending.set(id, {
+      resolve: (data) => { dlog('worker', `${msg.type}/${msg.mode || ''} done`, { id, ms: Math.round(performance.now() - started) }); resolve(data); },
+      reject: (err) => { dlog('worker', `${msg.type}/${msg.mode || ''} failed`, { id, error: String(err) }); reject(err); },
+    });
+    dlog('worker', `${msg.type}/${msg.mode || ''} sent`, { id, ops: msg.ops?.length });
     worker.postMessage({ ...msg, id });
   });
 }
@@ -122,7 +129,8 @@ async function runPreview() {
       S.outputBmp = out.bitmap;
     }
     setStatus('status.ready');
-  } catch {
+  } catch (err) {
+    console.error('ImagePad: preview failed', err);
     setStatus('status.error');
   } finally {
     setBusy(false);
@@ -346,6 +354,15 @@ function syncOutputDom() {
 }
 
 function draw() {
+  try {
+    drawFrame();
+  } catch (err) {
+    console.error('ImagePad: drawing failed', err);
+    setStatus('status.error');
+  }
+}
+
+function drawFrame() {
   syncOutputDom();
   resizeCanvas();
   if (S.needsFit) computeFit();
@@ -367,6 +384,7 @@ function draw() {
   }
 
   const img = S.view === 'original' ? S.srcBmp : (S.previewBmp || S.srcBmp);
+  if (!img || !img.width) return;
   g.imageSmoothingQuality = 'high';
   g.drawImage(img, S.ox, S.oy, S.srcW * S.scale, S.srcH * S.scale);
   drawAreaOutlines();
@@ -745,6 +763,8 @@ function setStatus(key) {
 }
 
 let busyCount = 0;
+// True while a drag from the finished image is in progress. Its drop must not replace the source.
+let internalDrag = false;
 let busyTimer = 0;
 
 // Counts overlapping work. The overlay appears after 150 ms, so quick updates do not flicker.
@@ -869,8 +889,8 @@ async function refreshExportCache() {
     if (run !== cacheRun || key !== outputKey()) return;
     S.exportCache = { key, blob: r.blob, mime: r.mime, name: outName(r.mime), url };
     draw();
-  } catch {
-    // The next change schedules another attempt.
+  } catch (err) {
+    console.error('ImagePad: export cache failed', err);
   } finally {
     setBusy(false);
   }
@@ -884,18 +904,28 @@ function updateDragHandle() {
 }
 
 function bindDrag() {
+  el.outImg.addEventListener('dragend', (e) => {
+    dlog('drag', 'dragend', { dropEffect: e.dataTransfer?.dropEffect });
+    internalDrag = false;
+  });
   el.outImg.addEventListener('mouseenter', () => { if (S.prefs.ui.hints) el.finishTip.classList.remove('is-off'); });
   el.outImg.addEventListener('mouseleave', () => el.finishTip.classList.add('is-off'));
   el.outImg.addEventListener('dragstart', (e) => {
     el.finishTip.classList.add('is-off');
     const c = S.exportCache;
+    dlog('drag', 'dragstart', { ready: !!c, keyMatches: c ? c.key === outputKey() : false, types: [...(e.dataTransfer?.types || [])] });
     if (!c || c.key !== outputKey()) {
       e.preventDefault();
       toast('toast.preparing');
       return;
     }
+    internalDrag = true;
+    // Firefox also puts the image's own URL on the drag. A drop could then navigate the panel to that URL,
+    // so the browser's default data is removed and only the file is kept.
+    e.dataTransfer.clearData();
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.items.add(new File([c.blob], c.name, { type: c.mime }));
+    dlog('drag', 'file added to drag', { name: c.name, bytes: c.blob.size, mime: c.mime });
   });
   // Zoom the output with the wheel; the image stays draggable at any zoom.
   el.outScroll.addEventListener('wheel', (e) => {
@@ -1151,14 +1181,29 @@ function bindControls() {
   });
 
   let dragDepth = 0;
-  window.addEventListener('dragenter', () => { dragDepth++; el.dropBox.classList.add('dragover'); });
-  window.addEventListener('dragleave', () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) el.dropBox.classList.remove('dragover'); });
+  window.addEventListener('dragenter', (e) => {
+    if (internalDrag) return;
+    dragDepth++;
+    el.dropBox.classList.add('dragover');
+  });
+  window.addEventListener('dragleave', () => {
+    if (internalDrag) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (!dragDepth) el.dropBox.classList.remove('dragover');
+  });
   window.addEventListener('dragover', (e) => e.preventDefault());
   window.addEventListener('drop', (e) => {
     e.preventDefault();
     dragDepth = 0;
     el.dropBox.classList.remove('dragover');
+    const types = [...(e.dataTransfer?.types || [])];
     const f = e.dataTransfer?.files?.[0];
+    if (internalDrag) {
+      dlog('drop', 'ignored: drop of our own image', { types, files: e.dataTransfer?.files?.length || 0 });
+      internalDrag = false;
+      return;
+    }
+    dlog('drop', 'external drop', { types, files: e.dataTransfer?.files?.length || 0, name: f?.name, bytes: f?.size });
     if (f) loadFile(f);
   });
   document.addEventListener('paste', (e) => {
@@ -1282,6 +1327,8 @@ function bindControls() {
 // ---------- init ----------
 
 async function init() {
+  installErrorReporting();
+  dlog('init', 'start', { ua: navigator.userAgent, hasExt: hasExt, sidebar: typeof globalThis.browser?.sidebarAction !== 'undefined' });
   setLang(detectLang());
   applyTheme(localStorage.getItem('wudp-theme') || 'modern');
   applyI18n();
@@ -1301,6 +1348,18 @@ async function init() {
   populateSettings();
   renderAll();
   bindTour();
+  if (DEBUG_BUILD) {
+    const copy = $('#copyLog');
+    copy.hidden = false;
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(diagnosticsText());
+        toast('toast.logcopied');
+      } catch {
+        toast('toast.error');
+      }
+    });
+  }
   applyUi();
   setTool(S.prefs.ui.startTool);
   setStatus('status.idle');

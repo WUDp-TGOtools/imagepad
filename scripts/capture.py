@@ -16,7 +16,7 @@ from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 EXT = ROOT / "dist" / "chrome"
 OUT = ROOT / "docs" / "images"
-DEMO = (ROOT / "docs" / "demo-site" / "index.html").as_uri()
+DEMO = "https://images.google.com/"  # Google Images: the camera icon opens the upload drop area
 SAMPLE = ROOT / "src" / "editor" / "assets" / "demo.jpg"
 
 
@@ -32,7 +32,7 @@ def main():
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         page.goto(DEMO)
         page.wait_for_timeout(500)
-        page.screenshot(path=str(OUT / "demo-site.png"))
+        page.screenshot(path=str(OUT / "google-images-upload.png"))
 
         worker = ctx.service_workers[0] if ctx.service_workers else ctx.wait_for_event("serviceworker")
         ext_id = worker.url.split("/")[2]
